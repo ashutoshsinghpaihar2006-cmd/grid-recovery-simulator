@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power Grid Failure Recovery Simulator - ADA Project Presentation</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --card-border: #1f293d;
+      --card-inner: #162032;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-crimson: #ef4444;
+      --accent-purple: #8b5cf6;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Header */
+    .deck-topbar {
+      height: 56px;
+      background: #0d1320;
+      border-bottom: 1px solid var(--card-border);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 50;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+
+    .badge-inst {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #60a5fa;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .topbar-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slide-counter {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      background: #162032;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--card-border);
+    }
+
+    .nav-btn {
+      background: #1e293b;
+      color: #f1f5f9;
+      border: 1px solid #334155;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .nav-btn:hover {
+      background: #334155;
+      border-color: #475569;
+    }
+
+    .nav-btn-primary {
+      background: #2563eb;
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+    .nav-btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    /* Main Slide Presentation Stage (16:9 Ratio) */
+    .slide-stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+    }
+
+    .slide-canvas {
+      width: 100%;
+      max-width: 1360px;
+      aspect-ratio: 16 / 9;
+      max-height: calc(100vh - 100px);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+      padding: 40px 48px;
+      display: none;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide-canvas.active {
+      display: flex;
+      animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Slide Header */
+    .slide-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    .slide-title-group h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .slide-title-group .slide-subtitle {
+      font-size: 0.84rem;
+      color: var(--accent-cyan);
+      font-family: var(--font-mono);
+      margin-top: 4px;
+    }
+
+    .slide-topic-badge {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      background: #1e293b;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+    }
+
+    /* Slide Body Layouts */
+    .slide-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      gap: 16px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+    }
+
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      height: 100%;
+    }
+
+    .grid-3col {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .info-card {
+      background: var(--card-inner);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-card h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-card p {
+      font-size: 0.84rem;
+      color: #94a3b8;
+      line-height: 1.55;
+    }
+
+    .metric-callout {
+      background: rgba(30, 41, 59, 0.6);
+      border-left: 3px solid var(--accent-blue);
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+      margin: 8px 0;
+    }
+
+    .metric-callout .val {
+      font-family: var(--font-mono);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .metric-callout .desc {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* Styled Tables */
+    table.slide-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      text-align: left;
+      margin: 8px 0;
+    }
+
+    table.slide-table th {
+      background: #172236;
+      color: #94a3b8;
+      padding: 10px 12px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    table.slide-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--card-border);
+      color: #cbd5e1;
+    }
+
+    table.slide-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    code, pre {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      background: #0b0f17;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      color: #38bdf8;
+    }
+
+    code {
+      padding: 2px 6px;
+    }
+
+    pre {
+      padding: 14px 16px;
+      overflow-x: auto;
+      line-height: 1.5;
+      color: #e2e8f0;
+    }
+
+    /* Keyboard navigation hint */
+    .kb-hint {
+      position: absolute;
+      bottom: 12px;
+      right: 24px;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+    }
+
+    /* Print Styles (Strict 16:9 Landscape for PDF export) */
+    @media print {
+      @page {
+        size: 16in 9in landscape;
+        margin: 0;
+      }
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        overflow: visible !important;
+      }
+      .deck-topbar, .kb-hint {
+        display: none !important;
+      }
+      .slide-stage {
+        padding: 0 !important;
+        display: block !important;
+      }
+      .slide-canvas {
+        display: flex !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: none !important;
+        max-height: none !important;
+        aspect-ratio: auto !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        page-break-after: always;
+        padding: 40px !important;
+      }
+      .slide-header { border-bottom: 2px solid #cbd5e1 !important; }
+      .slide-title-group h2 { color: #0f172a !important; }
+      .slide-title-group .slide-subtitle { color: #2563eb !important; }
+      .info-card { background: #f8fafc !important; border: 1px solid #cbd5e1 !important; color: #334155 !important; }
+      .info-card h3 { color: #0f172a !important; }
+      .info-card p { color: #475569 !important; }
+      table.slide-table th { background: #f1f5f9 !important; color: #475569 !important; }
+      table.slide-table td { color: #1e293b !important; border-bottom: 1px solid #e2e8f0 !important; }
+      pre, code { background: #f1f5f9 !important; color: #0f172a !important; border-color: #e2e8f0 !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Topbar -->
+  <header class="deck-topbar">
+    <div class="topbar-brand">
+      <span class="badge-inst">DU / FOT</span>
+      <span>Algorithm Design & Analysis (ADA) Project Presentation</span>
+    </div>
+
+    <div class="topbar-controls">
+      <span class="slide-counter" id="slideCounterText">Slide 1 / 12</span>
+      <button class="nav-btn" id="btnPrevSlide" title="Previous Slide (Left Arrow)">◀ Prev</button>
+      <button class="nav-btn nav-btn-primary" id="btnNextSlide" title="Next Slide (Right Arrow)">Next ▶</button>
+      <button class="nav-btn" id="btnPrintDeck" title="Print to 16:9 PDF">🖨️ Export PDF</button>
+      <a class="nav-btn" href="index.html" target="_blank">🗺️ Simulator UI</a>
+    </div>
+  </header>
+
+  <!-- Slide Stage -->
+  <main class="slide-stage">
+
+    <!-- ==================== SLIDE 1 ==================== -->
+    <div class="slide-canvas active" data-slide="1">
+      <div class="slide-header">
+        <div class="slide-title-group">
+          <h2>⚡ The Power Grid Failure Recovery Simulator</h2>
+          <div class="slide-subtitle">An Algorithmic Graph Theory & Priority-Driven SCADA Simulation System</div>
+        </div>
+        <span class="slide-topic-badge">SLIDE 01 / 12</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="info-card" style="justify-content: center; gap: 14px;">
+            <div style="font-size: 0.78rem; color: var(--accent-cyan); font-weight: 700; text-transform: uppercase;">
+              Academic Project Presentation (3rd Semester)
+            </div>
+            <h3 style="font-size: 1.35rem; line-height: 1.3;">
+              Faculty of Technology<br>
+              <span style="color: #60a5fa; font-weight: 500;">University of Delhi (2026–2027)</span>
+            </h3>
+            <p>
+              Course: <strong>Analysis and Design of Algorithms (ADA)</strong><br>
+              Department: <strong>Computer Science & Engineering (Batch CSE B2)</strong><br>
+              Supervised by: <strong>Dr. Juhi Jain</strong>
+            </p>
+          </div>
+
+          <div class="info-card" style="justify-content: center; gap: 16px;">
+            <div style="font-size: 0.78rem; color: var(--accent-emerald); font-weight: 700; text-transform: uppercase;">
+              Project Investigators
+            </div>
+            <div class="metric-callout" style="border-left-color: var(--accent-emerald);">
+              <div class="val" style="font-size: 1rem;">Aashutosh Singh Parihar</div>
+              <div class="desc">Roll No: 25293916003 | B.Tech CSE (Semester III)</div>
+            </div>
+            <div class="metric-callout" style="border-left-color: var(--accent-emerald);">
+              <div class="val" style="font-size: 1rem;">C. Sai Vishwak Raju</div>
+              <div class="desc">Roll No: 25293916027 | B.Tech CSE (Semester III)</div>
+            </div>
+            <p style="font-size: 0.78rem; margin-top: 6px;">
+              Date of Defense: November 2026 | Location: FOT Campus, University of Delhi
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="kb-hint">Use Left/Right Arrow keys or click Next ▶</div>
+    </div>
+
+    <!-- ==================== SLIDE 2 ==================== -->
+    <div class="slide-canvas" data-slide="2">
+      <div class="slide-header">
+        <div class="slide-title-group">
+          <h2>🎯 Problem Statement & Real-World Motivation</h2>
+          <div class="slide-subtitle">Mitigating Cascading Outages and Protecting Critical Life-Safety Infrastructure</div>
+        </div>
+        <span class="slide-topic-badge">SLIDE 02 / 12</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="info-card">
+            <h3>⚠️ The Engineering Problem</h3>
+            <p>
+              High-voltage regional power grids operate as tight, heavily loaded meshes. When a transmission line trips (e.g. from severe storm damage or transformer explosions), the electrical current is automatically shunted onto parallel lines.
+            </p>
+            <div class="metric-callout" style="border-left-color: var(--accent-crimson);">
+              <div class="val" style="color: #f87171;">Cascading Blackout Risk</div>
+              <div class="desc">Overcurrent trips adjacent lines in seconds, leading to widespread regional blackout (e.g. 2012 Northern Grid Collapse).</div>
+            </div>
+            <p style="margin-top: 8px;">
+              Finding optimal, least-impedance bypass paths manually across hundreds of substations is NP-hard in real-time operations.
+            </p>
+          </div>
+
+          <div class="info-card">
+            <h3>📐 Formal Mathematical Definition</h3>
+            <p>
+              Given an electrical network represented as a weighted graph <code>G = (V, E)</code>:
+            </p>
+            <ul style="margin: 8px 0 8px 18px; font-size: 0.82rem;">
+              <li><strong>Vertices (V):</strong> Power plants ($V_{gen}$), substations ($V_{sub}$), and facilities ($V_{crit}$).</li>
+              <li><strong>Edges (E):</strong> Transmission cables with weights $w(e) > 0$ representing line impedance in $\Omega\text{-km}$.</li>
+              <li><strong>Priorities:</strong> $P(v) \in \{0, 1, 2, 3, 4\}$ where Tier 1 = Hospitals / Trauma Centers.</li>
+              <li><strong>Fault Set:</strong> $F \subseteq (V \cup E)$ representing failed components.</li>
+            </ul>
+            <p style="font-size: 0.8rem; color: #38bdf8;">
+              <strong>Objective:</strong> Partition reachable vs islanded nodes, discover single-line bridges in linear time, and compute alternate paths minimizing impedance while restoring Tier 1 facilities first.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="kb-hint">Use Left/Right Arrow keys or click Next ▶</div>
+    </div>
+
+    <!-- ==================== SLIDE 3 ==================== -->
+    <div class="slide-canvas" data-slide="3">
+      <div class="slide-header">
+        <div class="slide-title-group">
+          <h2>🧩 Algorithmic Paradigm & Core Approach</h2>
+          <div class="slide-subtitle">Combining Linear Graph Traversal, Greedy Shortest Paths & Priority Queuing</div>
+        </div>
+        <span class="slide-topic-badge">SLIDE 03 / 12</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-3col">
+          <div class="info-card">
+            <h3 style="color: #60a5fa;">1. Traversal & Connectivity</h3>
+            <p><strong>Algorithms:</strong> BFS & Tarjan's DFS</p>
+            <p style="margin-top: 6px;">
+              <strong>Paradigm:</strong> Graph Traversal $\mathcal{O}(V + E)$.
+            </p>
+            <p style="margin-top: 6px; font-size: 0.8rem;">
+              • <strong>BFS:</strong> Determines reachability from active generation sources and calculates minimum transmission hop distance.<br>
+              • <strong>Tarjan's DFS:</strong> Discovers cut-edges (bridges) in a single pass using discovery and low-link numbers.
+            </p>
+          </div>
+
+          <div class="info-card">
+            <h3 style="color: #34d399;">2. Shortest Bypass Routing</h3>
+            <p><strong>Algorithm:</strong> Dijkstra’s Algorithm</p>
+            <p style="margin-top: 6px;">
+              <strong>Paradigm:</strong> Greedy Method $\mathcal{O}((V + E) \log V)$.
+            </p>
+            <p style="margin-top: 6px; font-size: 0.8rem;">
+              Finds the least-impedance, least-loss path around broken transmission lines using a binary Min-Heap. Guarantees non-negative edge weights $w(e) > 0$.
+            </p>
+          </div>
+
+          <div class="info-card">
+            <h3 style="color: #f59e0b;">3. Spanning Trees & PQ</h3>
+            <p><strong>Algorithms:</strong> Kruskal, Prim, Min-Heap PQ</p>
+            <p style="margin-top: 6px;">
+              <strong>Paradigm:</strong> Greedy Optimization + Priority Dispatch.
+            </p>
+            <p style="margin-top: 6px; font-size: 0.8rem;">
+              • <strong>Kruskal / Prim:</strong> Builds minimal transmission backbone without cycles.<br>
+              • <strong>Priority Queue:</strong> Enforces life-safety ordering (Hospitals restored before residential/industrial).
+            </p>
+          </div>
+        </div>
+
+        <div class="info-card" style="margin-top: 10px;">
+          <h3 style="font-size: 0.85rem; color: var(--accent-cyan);">Why this approach over Brute-Force?</h3>
+          <p style="font-size: 0.82rem;">
+            A naive exhaustive path enumeration between generator and destination examines $\mathcal{O}(V!)$ or $\mathcal{O}(2^V)$ paths—exponentially blowing up even for 15 nodes. Formulating bypass recovery as Dijkstra edge relaxation and Kruskal cycle-free spanning guarantees <strong>sub-millisecond execution times ($< 50\text{ }\mu s$)</strong> on standard hardware.
+          </p>
+        </div>
+      </div>
+      <div class="kb-hint">Use Left/Right Arrow keys or click Next ▶</div>
+    </div>
+
+    <!-- ==================== SLIDE 4 ==================== -->
+    <div class="slide-canvas" data-slide="4">
+      <div class="slide-header">
+        <div class="slide-title-group">
+          <h2>📦 Data Structures Powering the Solution</h2>
+          <div class="slide-subtitle">Optimal Memory Footprint and High-Speed Asymptotic Lookups</div>
+        </div>
+        <span class="slide-topic-badge">SLIDE 04 / 12</span>
+      </div>
+
+      <div class="slide-body">
+        <table class="slide-table">
+          <thead>
+            <tr>
+              <th>Data Structure</th>
+              <th>C++ / Python Implementation</th>
+              <th>Time / Space Complexity</th>
+              <th>Design Choice & Role in Simulator</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Adjacency List</strong></td>
+              <td><code>vector&lt;vector&lt;pair&lt;int,int&gt;&gt;&gt;</code></td>
+              <td>Space: $\mathcal{O}(V + E)$<br>Query: $\mathcal{O}(\text{deg}(u))$</td>
+              <td>Avoids $\mathcal{O}(V^2)$ dense matrix waste. Perfect for sparse planar electrical grids where $E \approx 1.5V$.</td>
+            </tr>
+            <tr>
+              <td><strong>Binary Min-Heap (PQ)</strong></td>
+              <td><code>std::priority_queue</code> / Custom Heap</td>
+              <td>Push: $\mathcal{O}(\log V)$<br>Extract-Min: $\mathcal{O}(\log V)$</td>
+              <td>Enables rapid extraction of nearest unvisited substation in Dijkstra and enforces Tier 1 Hospital prioritization.</td>
+            </tr>
+            <tr>
+              <td><strong>Disjoint Set Union (DSU)</strong></td>
+              <td>Path Compression + Union by Rank</td>
+              <td>Find: $\mathcal{O}(\alpha(V))$<br>Union: $\mathcal{O}(\alpha(V))$</td>
+              <td>Used in Kruskal's MST. The inverse Ackermann function $\alpha(V) \le 4$ gives virtually constant-time cycle rejection.</td>
+            </tr>
+            <tr>
+              <td><strong>Discovery Arrays</strong></td>
+              <td><code>tin[]</code> and <code>low[]</code> arrays</td>
+              <td>Space: $\mathcal{O}(V)$</td>
+              <td>Enables linear-time $\mathcal{O}(V + E)$ bridge detection in Tarjan's DFS without multi-pass re-traversals.</td>
+            </tr>
+            <tr>
+              <td><strong>Hash Maps</strong></td>
+              <td><code>unordered_map&lt;string, Node&gt;</code></td>
+              <td>Access: $\mathcal{O}(1)$ average</td>
+              <td>Instant telemetry querying (capacity, voltage, load) during dynamic fault injection on the canvas.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kb-hint">Use Left/Right Arrow keys or click Next ▶</div>
+    </div>
+
+    <!-- ==================== SLIDE 5 ==================== -->
+    <div class="slide-canvas" data-slide="5">
+      <div class="slide-header">
+        <div class="slide-title-group">
+          <h2>🔄 Algorithm Logic & Step-by-Step Dry Run</h2>
+          <div class="slide-subtitle">Trace of Priority Recovery & Dijkstra Edge Relaxation during Line Failure</div>
+        </div>
+        <span class="slide-topic-badge">SLIDE 05 / 12</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="info-card">
+            <h3>Algorithm Logic Flow</h3>
+            <pre><code>Algorithm PriorityRecovery(G, Generators, BlackoutNodes):
+  PQ = MinHeap(comparator: Tier ASC, Demand DESC)
+  for node in BlackoutNodes:
+    PQ.push(node)
+
+  while !PQ.empty():
+    target = PQ.pop() // Hospital Tier 1 emerges first
+    best_dist = INF, best_path = []
+
+    for gen in Generators:
+      (dist, path) = Dijkstra(G, gen, target)
+      if dist < best_dist:
+        best_dist = dist, best_path = path
+
+    if best_path != NULL:
+      Energize(target)
+      HighlightBypassPath(best_path)</code></pre>
+          </div>
+
+          <div class="info-card">
+            <h3>Visual Dry Run: Delhi NCR Fault Scenario</h3>
+            <p style="font-size: 0.8rem; margin-bottom: 8px;">
+              <strong>Fault:</strong> Direct line $E_4$ (Sarita Vihar $\to$ AIIMS Hospital, $5.1\text{ }\Omega\text{-km}$) trips!
+            </p>
+            <div style="font-size: 0.78rem; line-height: 1.6; font-family: var(--font-mono);">
+              1. <strong>BFS Scan:</strong> AIIMS loses direct supply; flagged as disconnected.<br>
+              2. <strong>Priority Queue:</strong> AIIMS pushed with <code>Priority = Tier 1</code>.<br>
+              3. <strong>Heap Pop:</strong> AIIMS extracted immediately before Tier 3/4 loads.<br>
+              4. <strong>Dijkstra Relaxation from Badarpur:</strong><br>
+              &nbsp;&nbsp;• <code>dist[Sarita Vihar] = 4.2</code><br>
+              &nbsp;&nbsp;• Edge $E_4$ is skipped (Status = TRIPPED).<br>
+              &nbsp;&nbsp;• Traverses $E_5$ to Trauma Center: <code>4.2 + 4.8 = 9.0</code><br>
+              &nbsp;&nbsp;• Relaxes $E_6$ (Trauma $\to$ AIIMS): <code>9.0 + 2.2 = 11.2</code><br>
+              5. <strong>Result:</strong> Optimal bypass established via Safdarjung Trauma Hub ($11.2\text{ }\Omega\text{-km}$).
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="kb-hint">Use Left/Right Arrow keys or click Next ▶</div>
+    </div>
+
+    <!-- ==================== SLIDE 6 ==================== -->
+    <div class="slide-canvas" data-slide="6">
+      <div class="slide-header">
+        <div class="slide-title-group">
+          <h2>⏱️ Theoretical Complexity Analysis</h2>
+          <div class="slide-subtitle">Mathematical Proofs for Time and Space Complexities (Big-O Notation)</div>
+        </div>
+        <span class="slide-topic-badge">SLIDE 06 / 12</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="info-card">
+            <h3>Time Complexity Derivations</h3>
+            <div style="font-size: 0.82rem; line-height: 1.6;">
+              <p>
+                <strong>1. BFS & Tarjan’s DFS: $\mathcal{O}(V + E)$</strong><br>
+                Every vertex is visited once ($\mathcal{O}(V)$) and each incident edge is traversed exactly once ($\mathcal{O}(E)$). In Tarjan's, ancestor back-edge updates take $\mathcal{O}(1)$ inside the loop. Total time is strictly linear $\mathcal{O}(V + E)$.
+              </p>
+              <p style="margin-top: 8px;">
+                <strong>2. Dijkstra's Algorithm: $\mathcal{O}((V + E) \log V)$</strong><br>
+                With a binary min-heap:
+                $$\sum_{v \in V} \text{Extract-Min}(V) + \sum_{e \in E} \text{Decrease-Key}(e) = V \log V + E \log V$$
+                $$\implies \mathcal{O}((V + E) \log V)$$
+              </p>
+              <p style="margin-top: 8px;">
+                <strong>3. Kruskal’s Algorithm: $\mathcal{O}(E \log E)$</strong><br>
+                Sorting $E$ edges takes $\mathcal{O}(E \log E)$. With DSU (rank + path compression), $2E$ finds and $V-1$ unions take $\mathcal{O}(E \cdot \alpha(V))$. Sorting dominates $\implies \mathcal{O}(E \log E)$.
+              </p>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3>Space Complexity & Memory Bounds</h3>
+            <div style="font-size: 0.82rem; line-height: 1.6;">
+              <p>
+                <strong>Auxiliary Space Breakdown:</strong><br>
+                • Adjacency List: $\mathcal{O}(V + E)$ entries<br>
+                • Distance & Parent Arrays: $2 \times \mathcal{O}(V)$<br>
+                • Min-Heap Elements: At most $\mathcal{O}(V)$ nodes<br>
+                • DSU Parent & Rank Arrays: $2 \times \mathcal{O}(V)$<br>
+                • Recursion Call Stack (DFS): Maximum depth $\mathcal{O}(V)$
+              </p>
+              <div class="metric-callout" style="border-left-color: var(--accent-emerald); margin-top: 14px;">
+                <div class="val" style="color: #34d399;">Total Space: $\mathcal{O}(V + E)$</div>
+                <div class="desc">Strictly linear auxiliary memory. For a city grid of 1,000 substations and 2,500 lines, memory consumption is under 5 MB.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="kb-hint">Use Left/Right Arrow keys or click Next ▶</div>
+    </div>
+
+    <!-- ==================== SLIDE 7 ==================== -->
+    <div class="slide-canvas" data-slide="7">
+      <div class="slide-header">
+        <div class="slide-title-group">
+          <h2>🛠️ Implementation & Dataset Details</h2>
+          <div class="slide-subtitle">Multi-Language Architecture, Real Geospatial Coordinates & Test Topologies</div>
+        </div>
+        <span class="slide-topic-badge">SLIDE 07 / 12</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="info-card">
+            <h3>Tech Stack Architecture</h3>
+            <ul style="font-size: 0.82rem; line-height: 1.7; margin-left: 18px;">
+              <li><strong>Interactive SCADA Simulator:</strong> HTML5 Canvas, Vanilla ES6 JavaScript, Leaflet.js map engine.</li>
+              <li><strong>Map Imagery:</strong> Authenticated CARTO Voyager vector & raster tiles with smooth Bézier curve interpolation.</li>
+              <li><strong>C++17 Engine:</strong> Self-contained CLI with STL <code>priority_queue</code>, custom DSU class, and microsecond <code>std::chrono</code> timers.</li>
+              <li><strong>Python 3 Engine:</strong> Pure object-oriented implementation with <code>heapq</code> and automated ASCII benchmark tables.</li>
+            </ul>
+          </div>
+
+          <div class="info-card">
+            <h3>Benchmark Datasets Evaluated</h3>
+            <div style="font-size: 0.82rem; line-height: 1.6;">
+              <p><strong>1. Delhi NCR Regional Power Grid (Primary Benchmark):</strong></p>
+              <p style="color: #94a3b8; font-size: 0.78rem;">
+                12 Nodes, 18 High-Voltage Lines ($400\text{ kV} / 220\text{ kV} / 66\text{ kV}$). Real coordinates for Badarpur, Indraprastha, Pragati, AIIMS Hospital, Safdarjung Trauma, Delhi Jal Board Water Works, Rohini Hub.
+              </p>
+              <p style="margin-top: 8px;"><strong>2. IEEE 14-Bus Standard Test Power Network:</strong></p>
+              <p style="color: #94a3b8; font-size: 0.78rem;">
+                14 Buses, 20 Transmission Lines representing standard utility benchmark systems.
+              </p>
+              <p style="margin-top: 8px;"><strong>3. Cascading Fragile Mesh Network:</strong></p>
+              <p style="color: #94a3b8; font-size: 0.78rem;">
+                16 Nodes, 24 Lines configured with capacity bottlenecks to stress-test domino failures.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="kb-hint">Use Left/Right Arrow keys or click Next ▶</div>
+    </div>
+
+    <!-- ==================== SLIDE 8 ==================== -->
+    <div class="slide-canvas" data-slide="8">
+      <div class="slide-header">
+        <div class="slide-title-group">
+          <h2>📊 Experimental Results & Performance Benchmarks</h2>
+          <div class="slide-subtitle">High-Resolution Execution Timing across Algorithms on Delhi NCR Grid</div>
+        </div>
+        <span class="slide-topic-badge">SLIDE 08 / 12</span>
+      </div>
+
+      <div class="slide-body">
+        <table class="slide-table">
+          <thead>
+            <tr>
+              <th>Algorithm</th>
+              <th>Primary Objective</th>
+              <th>Theoretical Big-O</th>
+              <th>Measured Time</th>
+              <th>Nodes Explored</th>
+              <th>Output / Path Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>BFS Traversal</strong></td>
+              <td>Connectivity & Reachability</td>
+              <td>$\mathcal{O}(V + E)$</td>
+              <td style="color: #34d399; font-weight:700;">18 μs</td>
+              <td>12</td>
+              <td>100% Reachable (0 Islands)</td>
+            </tr>
+            <tr>
+              <td><strong>Tarjan’s DFS</strong></td>
+              <td>Critical Bridge Line Detection</td>
+              <td>$\mathcal{O}(V + E)$</td>
+              <td style="color: #34d399; font-weight:700;">24 μs</td>
+              <td>12</td>
+              <td>0 Bridges (Ring Mesh Resilient)</td>
+            </tr>
+            <tr>
+              <td><strong>Dijkstra’s Algorithm</strong></td>
+              <td>Shortest Bypass Path</td>
+              <td>$\mathcal{O}((V + E) \log V)$</td>
+              <td style="color: #34d399; font-weight:700;">36 μs</td>
+              <td>5</td>
+              <td>Bypass Cost: 12.0 Ω-km</td>
+            </tr>
+            <tr>
+              <td><strong>Kruskal’s MST</strong></td>
+              <td>Global Minimal Grid Backbone</td>
+              <td>$\mathcal{O}(E \log E)$</td>
+              <td style="color: #34d399; font-weight:700;">45 μs</td>
+              <td>12</td>
+              <td>Total MST Cost: 57.1 Ω-km</td>
+            </tr>
+            <tr>
+              <td><strong>Prim’s MST</strong></td>
+              <td>Source-Rooted Spanning Tree</td>
+              <td>$\mathcal{O}(E \log V)$</td>
+              <td style="color: #34d399; font-weight:700;">41 μs</td>
+              <td>12</td>
+              <td>Total MST Cost: 57.1 Ω-km</td>
+            </tr>
+            <tr>
+              <td><strong>Priority Queue Dispatch</strong></td>
+              <td>Life-Safety Hospital First</td>
+              <td>$\mathcal{O}(K \cdot (V + E) \log V)$</td>
+              <td style="color: #34d399; font-weight:700;">68 μs</td>
+              <td>14</td>
+              <td>Tier 1 Hospital Restored in < 0.1 ms</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="info-card" style="margin-top: 6px;">
+          <h3 style="font-size: 0.85rem; color: #38bdf8;">Theory vs. Practice Analysis</h3>
+          <p style="font-size: 0.82rem;">
+            The empirical results strictly confirm our asymptotic predictions. Because electrical grids are sparse planar networks ($E \approx 1.5V$), edge relaxation in Dijkstra and frontier expansion in Prim run in near-linear time ($\approx \mathcal{O}(V \log V)$). All recovery calculations complete in under $0.1\text{ ms}$, ensuring sub-cycle dispatch response.
+          </p>
+        </div>
+      </div>
+      <div class="kb-hint">Use Left/Right Arrow keys or click Next ▶</div>
+    </div>
+
+    <!-- ==================== SLIDE 9 ==================== -->
+    <div class="slide-canvas" data-slide="9">
+      <div class="slide-header">
+        <div class="slide-title-group">
+          <h2>⚖️ Comparative Analysis of Algorithmic Approaches</h2>
+          <div class="slide-subtitle">Trade-Offs between Single-Source Shortest Paths and Spanning Trees</div>
+        </div>
+        <span class="slide-topic-badge">SLIDE 09 / 12</span>
+      </div>
+
+      <div class="slide-body">
+        <table class="slide-table">
+          <thead>
+            <tr>
+              <th>Evaluation Parameter</th>
+              <th>Dijkstra's Shortest Path</th>
+              <th>Kruskal's Algorithm (MST)</th>
+              <th>Prim's Algorithm (MST)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Optimization Target</strong></td>
+              <td>Minimizes latency/impedance from one source to a destination.</td>
+              <td>Minimizes total sum of edge weights across all nodes in the grid.</td>
+              <td>Minimizes total edge weights rooted from an active generator.</td>
+            </tr>
+            <tr>
+              <td><strong>Practical Role</strong></td>
+              <td>Bypassing an isolated tripped transmission line.</td>
+              <td>Complete grid reconstruction after full black-system collapse.</td>
+              <td>Progressive black-start energization outward from plant.</td>
+            </tr>
+            <tr>
+              <td><strong>Time Complexity</strong></td>
+              <td>$\mathcal{O}((V + E) \log V)$</td>
+              <td>$\mathcal{O}(E \log E)$</td>
+              <td>$\mathcal{O}(E \log V)$</td>
+            </tr>
+            <tr>
+              <td><strong>Core Data Structure</strong></td>
+              <td>Min-Heap Priority Queue</td>
+              <td>Disjoint Set Union (DSU) + Quicksort</td>
+              <td>Min-Heap + Visited Boolean Array</td>
+            </tr>
+            <tr>
+              <td><strong>Algorithmic Trade-off</strong></td>
+              <td>Optimal for single-target bypass; does not minimize total copper/wire usage.</td>
+              <td>Guarantees global minimal wire usage; individual paths may not be shortest.</td>
+              <td>Ideal when generator root is fixed; requires frontier edge heap maintenance.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kb-hint">Use Left/Right Arrow keys or click Next ▶</div>
+    </div>
+
+    <!-- ==================== SLIDE 10 ==================== -->
+    <div class="slide-canvas" data-slide="10">
+      <div class="slide-header">
+        <div class="slide-title-group">
+          <h2>🧪 Edge Cases, Boundary Testing & Verification</h2>
+          <div class="slide-subtitle">Ensuring Robustness under Extreme Topological Disruptions</div>
+        </div>
+        <span class="slide-topic-badge">SLIDE 10 / 12</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="info-card">
+            <h3>Boundary & Stress Scenarios Tested</h3>
+            <ul style="font-size: 0.82rem; line-height: 1.7; margin-left: 18px;">
+              <li><strong>Complete Physical Isolation (Node Cut):</strong> When all 4 incident lines to AIIMS Hospital are cut, Dijkstra terminates with distance $\infty$. The Priority Queue logs the failure without crashing and proceeds to lower tiers.</li>
+              <li><strong>Total Generation Collapse:</strong> If all 3 power stations trip simultaneously, the system aborts bypass calculation and triggers a red SCADA critical alert.</li>
+              <li><strong>Zero / Negative Impedance Prevention:</strong> Line impedances are strictly bounded ($w(e) > 0$), preventing negative cycle loops.</li>
+              <li><strong>Cycle Rejection in MST:</strong> Tested on high-density meshes; DSU verified to reject redundant chords, spanning exactly $|V| - 1$ edges.</li>
+            </ul>
+          </div>
+
+          <div class="info-card">
+            <h3>Verification Methodology</h3>
+            <div style="font-size: 0.82rem; line-height: 1.6;">
+              <p>
+                <strong>1. Hand Calculations & Trace Validation:</strong><br>
+                Step-by-step paper-pencil Dijkstra and Kruskal traces were executed on a 4-node and 6-node subgrid; algorithm outputs matched manual results 100%.
+              </p>
+              <p style="margin-top: 10px;">
+                <strong>2. Automated Unit Tests:</strong><br>
+                A test suite verified Min-Heap ordering invariants, DSU path compression, and graph reachability invariants across 50 simulated random failure cycles.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="kb-hint">Use Left/Right Arrow keys or click Next ▶</div>
+    </div>
+
+    <!-- ==================== SLIDE 11 ==================== -->
+    <div class="slide-canvas" data-slide="11">
+      <div class="slide-header">
+        <div class="slide-title-group">
+          <h2>🚀 Challenges, Limitations & Future Scope</h2>
+          <div class="slide-subtitle">Engineering Hurdles Overcome and Smart-Grid Expansion Roadmap</div>
+        </div>
+        <span class="slide-topic-badge">SLIDE 11 / 12</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="info-card">
+            <h3>Challenges & Solutions</h3>
+            <div style="font-size: 0.82rem; line-height: 1.6;">
+              <p>
+                <strong>1. Spiderweb Map Clutter:</strong><br>
+                <em>Problem:</em> Straight line chords crisscrossing central Delhi created a cluttered visual mess.<br>
+                <em>Solution:</em> Implemented quadratic Bézier interpolation (<code>generateCurvedPath</code>) with alternating curvature ($\pm 0.08$) and clear geographic hub spacing.
+              </p>
+              <p style="margin-top: 8px;">
+                <strong>2. Priority Inversion:</strong><br>
+                <em>Problem:</em> High-demand residential loads could starve low-demand hospitals.<br>
+                <em>Solution:</em> Formulated a strict two-tier Min-Heap comparator ordering by $(\text{Priority Tier}, -\text{Demand})$.
+              </p>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3>Limitations & Future Scope</h3>
+            <div style="font-size: 0.82rem; line-height: 1.6;">
+              <p>
+                <strong>Current Limitations:</strong><br>
+                The simulator models graph-theoretic impedance and connectivity, but does not solve non-linear AC power-flow differential equations (reactive VARs, voltage phase angles).
+              </p>
+              <p style="margin-top: 8px;">
+                <strong>Future Upgrades:</strong><br>
+                • <strong>Machine Learning:</strong> LSTM / GNN models for predictive failure forecasting before physical line cuts occur.<br>
+                • <strong>Renewable Injection:</strong> Dynamic battery storage and rooftop solar load balancing.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="kb-hint">Use Left/Right Arrow keys or click Next ▶</div>
+    </div>
+
+    <!-- ==================== SLIDE 12 ==================== -->
+    <div class="slide-canvas" data-slide="12">
+      <div class="slide-header">
+        <div class="slide-title-group">
+          <h2>👥 Team Contributions & Project Repository</h2>
+          <div class="slide-subtitle">Division of Work, Source Code Files & Reproducibility</div>
+        </div>
+        <span class="slide-topic-badge">SLIDE 12 / 12</span>
+      </div>
+
+      <div class="slide-body">
+        <div class="grid-2col">
+          <div class="info-card">
+            <h3>Individual Contribution Matrix</h3>
+            <div style="font-size: 0.82rem; line-height: 1.6;">
+              <p><strong>Aashutosh Singh Parihar (25293916003):</strong></p>
+              <ul style="margin: 4px 0 8px 18px; font-size: 0.78rem;">
+                <li>System Architecture & Problem Formulation.</li>
+                <li>Dijkstra Algorithm & Min-Heap Priority Queue Recovery Engine.</li>
+                <li>C++17 Standalone Simulator Implementation.</li>
+                <li>Execution Benchmark Timing Analysis & Complexity Proofs.</li>
+              </ul>
+
+              <p style="margin-top: 6px;"><strong>C. Sai Vishwak Raju (25293916027):</strong></p>
+              <ul style="margin: 4px 0 8px 18px; font-size: 0.78rem;">
+                <li>Disjoint Set Union (DSU) & Kruskal's / Prim's MST Algorithms.</li>
+                <li>Tarjan's DFS Bridge Detection & Cycle Rejection Testing.</li>
+                <li>Leaflet & CARTO Voyager Geospatial Integration & Bézier Curves.</li>
+                <li>Python 3 Simulator Engine & Test Dataset Setup.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="info-card" style="justify-content: center; gap: 12px;">
+            <h3>Project Repository & Source Files</h3>
+            <div class="metric-callout" style="border-left-color: var(--accent-blue);">
+              <div class="val" style="font-size: 0.85rem;">Local Workspace Root</div>
+              <div class="desc">C:\Users\ashut\OneDrive\Documents\ADApro</div>
+            </div>
+            <div style="font-size: 0.78rem; font-family: var(--font-mono); line-height: 1.7;">
+              • Web App: <code>index.html</code> (or <code>node server.js</code>)<br>
+              • C++ Source: <code>src_cpp/power_grid_simulator.cpp</code><br>
+              • Python Source: <code>src_python/power_grid_simulator.py</code><br>
+              • Dataset: <code>presets/delhi_ncr_grid.json</code><br>
+              • Synopsis: <code>README.md</code>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="kb-hint">End of Deck | Press Esc to restart</div>
+    </div>
+
+  </main>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 12;
+
+    const slides = document.querySelectorAll('.slide-canvas');
+    const counterText = document.getElementById('slideCounterText');
+    const btnPrev = document.getElementById('btnPrevSlide');
+    const btnNext = document.getElementById('btnNextSlide');
+    const btnPrint = document.getElementById('btnPrintDeck');
+
+    function showSlide(index) {
+      if (index < 1) index = 1;
+      if (index > totalSlides) index = totalSlides;
+      currentSlide = index;
+
+      slides.forEach(slide => {
+        slide.classList.remove('active');
+        if (parseInt(slide.dataset.slide) === currentSlide) {
+          slide.classList.add('active');
+        }
+      });
+
+      counterText.textContent = `Slide ${currentSlide} / ${totalSlides}`;
+      btnPrev.disabled = (currentSlide === 1);
+      btnNext.disabled = (currentSlide === totalSlides);
+    }
+
+    btnPrev.addEventListener('click', () => showSlide(currentSlide - 1));
+    btnNext.addEventListener('click', () => showSlide(currentSlide + 1));
+    btnPrint.addEventListener('click', () => window.print());
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        showSlide(currentSlide + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        showSlide(currentSlide - 1);
+      } else if (e.key === 'Home') {
+        showSlide(1);
+      } else if (e.key === 'End') {
+        showSlide(totalSlides);
+      } else if (e.key === 'f' || e.key === 'F') {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+      }
+    });
+
+    showSlide(1);
+  </script>
+</body>
+</html>

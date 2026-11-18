@@ -1,0 +1,914 @@
+/* ==========================================================================
+   Power Grid Failure Recovery Simulator - Modern SaaS Map UI
+   Design Inspiration: Globetrans Minimalist Light Map & Floating Glass Cards
+   ========================================================================== */
+
+:root {
+  --bg-app: #f4f5f7;
+  --bg-card: rgba(255, 255, 255, 0.94);
+  --bg-card-hover: #ffffff;
+  --bg-sidebar: #ffffff;
+  --border-light: #e5e7eb;
+  --border-subtle: #f1f3f5;
+
+  --text-main: #111827;
+  --text-muted: #6b7280;
+  --text-dim: #9ca3af;
+
+  --accent-black: #18181b;
+  --accent-lime: #a3e635;
+  --accent-lime-dark: #65a30d;
+  --accent-emerald: #10b981;
+  --accent-crimson: #ef4444;
+  --accent-amber: #f59e0b;
+  --accent-purple: #c084fc;
+
+  --badge-transit-bg: #d9f99d;
+  --badge-transit-text: #365314;
+  --badge-packed-bg: #f3e8ff;
+  --badge-packed-text: #6b21a8;
+  --badge-fail-bg: #fee2e2;
+  --badge-fail-text: #991b1b;
+  --badge-alert-bg: #fef3c7;
+  --badge-alert-text: #92400e;
+
+  --shadow-floating: 0 16px 36px -4px rgba(0, 0, 0, 0.08), 0 6px 16px -2px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.04);
+  --radius-panel: 22px;
+  --radius-card: 16px;
+  --radius-pill: 9999px;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+}
+
+/* ==========================================================================
+   1. Ultra-Minimal Left Icon Sidebar
+   ========================================================================== */
+.app-icon-sidebar {
+  width: 72px;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  z-index: 1000;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.02);
+}
+
+.sidebar-top, .sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand-circle-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid #18181b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #18181b;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s;
+  margin-bottom: 8px;
+}
+
+.brand-circle-logo:hover {
+  transform: rotate(20deg) scale(1.05);
+  background: #f4f4f5;
+}
+
+.sidebar-nav-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: #71717a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  position: relative;
+}
+
+.sidebar-nav-btn:hover {
+  background: #f4f4f5;
+  color: #18181b;
+}
+
+.sidebar-nav-btn.active {
+  background: #18181b;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(24, 24, 27, 0.25);
+}
+
+.sidebar-nav-btn[data-badge]::after {
+  content: attr(data-badge);
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background: var(--accent-crimson);
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+}
+
+/* ==========================================================================
+   2. Main Map Viewport (Background)
+   ========================================================================== */
+.map-canvas-container {
+  position: absolute;
+  top: 0;
+  left: 72px;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  background: #eef2f6;
+}
+
+#leafletMap {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Leaflet clean custom attribution & controls styling */
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: var(--shadow-card) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+.leaflet-control-zoom a {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #18181b !important;
+  border-bottom: 1px solid var(--border-light) !important;
+}
+.leaflet-control-zoom a:hover {
+  background: #ffffff !important;
+}
+
+/* Custom Marker Pins */
+.custom-station-pin {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.custom-station-pin:hover {
+  transform: scale(1.1) translateY(-2px);
+  z-index: 9999;
+}
+
+.pin-bullet {
+  width: 14px;
+  height: 14px;
+  background: #18181b;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.pin-bullet.tier-1 {
+  background: #dc2626;
+  border-color: #fee2e2;
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.6);
+}
+
+.pin-bullet.tier-0 {
+  background: #059669;
+  border-color: #d1fae5;
+  box-shadow: 0 0 10px rgba(5, 150, 105, 0.6);
+}
+
+.pin-bullet.failed {
+  background: #b91c1c;
+  animation: pulseFail 1.2s infinite;
+}
+
+@keyframes pulseFail {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.35); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.pin-label-text {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  letter-spacing: -0.01em;
+}
+
+/* ==========================================================================
+   3. Floating Left Packages/Substations Card (Identical to reference UI)
+   ========================================================================== */
+.floating-substation-panel {
+  position: absolute;
+  top: 24px;
+  left: 96px;
+  width: 375px;
+  max-height: calc(100vh - 48px);
+  background: var(--bg-card);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-floating);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.panel-top-header {
+  padding: 20px 20px 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-title {
+  font-size: 1.28rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.panel-menu-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  background: #ffffff;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.panel-menu-btn:hover {
+  background: #f9fafb;
+  border-color: #cbd5e1;
+}
+
+/* Segmented Pill Switcher (On the way / Delivered) */
+.segmented-pill-container {
+  padding: 0 20px 16px 20px;
+}
+
+.segmented-pill {
+  background: #f1f3f5;
+  border-radius: var(--radius-pill);
+  padding: 4px;
+  display: flex;
+  gap: 4px;
+}
+
+.pill-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #4b5563;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.pill-tab.active {
+  background: #18181b;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Substation / Route Cards Scroll Area */
+.substation-cards-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Compact Inactive Card */
+.route-item-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.route-item-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: var(--shadow-card);
+  transform: translateY(-1px);
+}
+
+.route-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.route-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.route-subtitle {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* Status Badges (Lime IN TRANSIT, Purple PACKED, Red TRIPPED) */
+.status-badge {
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+}
+
+.badge-in-transit {
+  background: var(--badge-transit-bg);
+  color: var(--badge-transit-text);
+}
+
+.badge-packed {
+  background: var(--badge-packed-bg);
+  color: var(--badge-packed-text);
+}
+
+.badge-tripped {
+  background: var(--badge-fail-bg);
+  color: var(--badge-fail-text);
+}
+
+.badge-delivered {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Expanded Highlighted Card (Matches the prominent Norra Nynäshamn card) */
+.route-item-card.expanded {
+  border: 1.5px solid #18181b;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  background: #ffffff;
+}
+
+/* Neon Lime Progress Bar */
+.transit-progress-wrapper {
+  margin: 10px 0 14px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.transit-progress-bar {
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  position: relative;
+}
+
+.transit-progress-fill {
+  height: 100%;
+  background: var(--accent-lime-dark);
+  border-radius: var(--radius-pill);
+  transition: width 0.4s ease;
+}
+
+/* Key Stats 4-column Grid */
+.card-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 8px 0 12px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.stat-metric-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-metric-cell .cell-label {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.stat-metric-cell .cell-val {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-top: 2px;
+}
+
+/* Dispatcher / Operator mini row */
+.operator-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+}
+
+.operator-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.operator-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: 1px solid var(--border-light);
+}
+
+.operator-name-box .op-label {
+  font-size: 0.62rem;
+  color: var(--text-dim);
+}
+
+.operator-name-box .op-name {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.operator-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.op-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: #ffffff;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.op-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.card-collapse-trigger {
+  padding-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   4. Floating Top-Right Action & Search Controls
+   ========================================================================== */
+.floating-top-actions {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 500;
+}
+
+.floating-action-pill-box {
+  background: var(--bg-card);
+  backdrop-filter: blur(18px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  box-shadow: var(--shadow-floating);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preset-dropdown-modern {
+  border: none;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #18181b;
+  outline: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+
+.circle-action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: #1f2937;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.circle-action-btn:hover {
+  background: #f9fafb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.circle-action-btn.btn-alert-red {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+.circle-action-btn.btn-alert-red:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.circle-action-btn.btn-action-green {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #15803d;
+}
+.circle-action-btn.btn-action-green:hover {
+  background: #10b981;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   5. Floating Bottom Recovery & Order Status Card (Identical to reference UI)
+   ========================================================================== */
+.floating-bottom-status-card {
+  position: absolute;
+  bottom: 24px;
+  left: 490px;
+  right: 24px;
+  background: var(--bg-card);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-floating);
+  padding: 18px 24px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.25s ease;
+}
+
+.bottom-card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bottom-left-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.order-id-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.dark-pill-badge {
+  background: #18181b;
+  color: #a3e635;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pill-contact-btn {
+  border: 1.5px solid #e5e7eb;
+  background: #ffffff;
+  color: #18181b;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.pill-contact-btn:hover {
+  border-color: #18181b;
+  background: #18181b;
+  color: #ffffff;
+}
+
+.bottom-metadata-columns {
+  display: grid;
+  grid-template-columns: 1.3fr 1.3fr 1.2fr 1fr 1fr;
+  gap: 16px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.meta-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.meta-col .meta-label {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.meta-col .meta-value {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-top: 2px;
+}
+
+.meta-col .meta-sub {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   6. Algorithm Drawer & Report Modal (Sleek Clean Light Redesign)
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(17, 24, 39, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-box {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 780px;
+  max-width: 92vw;
+  max-height: 85vh;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+}
+
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: #374151;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: #f9fafb;
+}
+
+/* Benchmark Drawer (Slide-up light drawer) */
+.benchmark-drawer {
+  position: absolute;
+  bottom: 0;
+  left: 490px;
+  right: 24px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-light);
+  border-bottom: none;
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.08);
+  z-index: 600;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(calc(100% - 44px));
+}
+
+.benchmark-drawer.expanded {
+  transform: translateY(0);
+}
+
+.benchmark-toggle-bar {
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.benchmark-table-container {
+  padding: 12px 24px 24px 24px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+  text-align: left;
+}
+
+.comparison-table th {
+  background: #f8fafc;
+  color: #64748b;
+  padding: 8px 12px;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.comparison-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  font-family: var(--font-mono);
+  color: #334155;
+}
+
+.comparison-table tr:hover td {
+  background: #f8fafc;
+}
+
+/* Modern Pill Button */
+.btn-pill {
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.btn-pill-dark {
+  background: #18181b;
+  color: #ffffff;
+}
+.btn-pill-dark:hover {
+  background: #27272a;
+}
+
+.btn-pill-light {
+  background: #ffffff;
+  border-color: var(--border-light);
+  color: #374151;
+}
+.btn-pill-light:hover {
+  background: #f9fafb;
+  border-color: #cbd5e1;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@media (max-width: 1024px) {
+  .floating-bottom-status-card {
+    left: 96px;
+    bottom: 12px;
+    right: 12px;
+  }
+  .floating-substation-panel {
+    width: 320px;
+    left: 84px;
+  }
+}

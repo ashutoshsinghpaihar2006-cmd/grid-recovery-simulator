@@ -1,0 +1,25 @@
+{
+  "name": "power-grid-failure-recovery-simulator",
+  "version": "1.0.0",
+  "description": "Algorithm Design and Analysis (ADA) Project: Power Grid Failure Recovery Simulator - Faculty of Technology, University of Delhi",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "algorithm-design-and-analysis",
+    "graph-algorithms",
+    "dijkstra",
+    "bfs",
+    "dfs",
+    "prims-mst",
+    "kruskals-mst",
+    "priority-queue",
+    "power-grid-recovery"
+  ],
+  "author": "Aashutosh Singh Parihar & C. Sai Vishwak Raju",
+  "license": "MIT",
+  "dependencies": {
+    "pptxgenjs": "^4.0.1"
+  }
+}

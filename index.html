@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power Grid Failure Recovery Simulator | Faculty of Technology, University of Delhi</title>
+  
+  <!-- Leaflet CSS for Map View -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ========================================================
+       1. Ultra-Minimalist Left Sidebar (Globetrans Style)
+       ======================================================== -->
+  <aside class="app-icon-sidebar">
+    <div class="sidebar-top">
+      <div class="brand-circle-logo" id="btnLogoHome" title="Power Grid Simulator - Faculty of Technology (DU)">
+        ⚡
+      </div>
+      <button class="sidebar-nav-btn active" id="btnNavMap" title="Map & Grid Overview">
+        🗺️
+      </button>
+      <button class="sidebar-nav-btn" id="btnNavRoutes" title="Bypass Routing & Dijkstra">
+        🔀
+      </button>
+      <button class="sidebar-nav-btn" id="btnNavFaults" title="Simulate Disruption & Faults">
+        💥
+      </button>
+      <button class="sidebar-nav-btn" id="btnNavMST" title="Minimum Spanning Tree (Prim / Kruskal)">
+        🌲
+      </button>
+      <button class="sidebar-nav-btn" id="btnNavBenchmark" title="Algorithm Benchmarking Suite">
+        📊
+      </button>
+    </div>
+
+    <div class="sidebar-bottom">
+      <button class="sidebar-nav-btn" id="btnNavReport" title="Academic Evaluation Report">
+        📑
+      </button>
+      <button class="sidebar-nav-btn" id="btnNavReset" title="Reset Grid to 100% Nominal">
+        🔄
+      </button>
+    </div>
+  </aside>
+
+  <!-- ========================================================
+       2. Full-Screen Interactive Light Map Viewport
+       ======================================================== -->
+  <div class="map-canvas-container" id="mapContainer">
+    <div id="leafletMap"></div>
+  </div>
+
+  <!-- ========================================================
+       3. Floating Left Packages/Substations Card
+       ======================================================== -->
+  <aside class="floating-substation-panel" id="substationPanel">
+    <div class="panel-top-header">
+      <h2 class="panel-title">Grid Substations</h2>
+      <button class="panel-menu-btn" id="btnPanelFilter" title="Options">
+        ⋮
+      </button>
+    </div>
+
+    <!-- Segmented Filter Switcher -->
+    <div class="segmented-pill-container">
+      <div class="segmented-pill">
+        <button class="pill-tab active" id="tabFeedersActive">Active Feeders</button>
+        <button class="pill-tab" id="tabFeedersFaults">Blackouts / Tripped</button>
+      </div>
+    </div>
+
+    <!-- Scrollable Cards Feed -->
+    <div class="substation-cards-list" id="substationCardsList">
+      <!-- Dynamically filled by app.js (Includes prominent expanded active card and compact cards) -->
+    </div>
+  </aside>
+
+  <!-- ========================================================
+       4. Floating Top-Right Actions & Search Bar
+       ======================================================== -->
+  <div class="floating-top-actions">
+    <div class="floating-action-pill-box">
+      <span style="font-size: 13px;">🌐</span>
+      <select id="selectTopologyPreset" class="preset-dropdown-modern">
+        <option value="delhi_ncr">Faculty of Technology - Delhi NCR (12 Nodes)</option>
+        <option value="ieee_14">IEEE 14-Bus Test System (14 Nodes)</option>
+        <option value="cascade_mesh">Cascading Fragile Mesh (16 Nodes)</option>
+      </select>
+    </div>
+
+    <button class="circle-action-btn" id="btnRecenterMap" title="Recenter Delhi Map">
+      ⌖
+    </button>
+
+    <button class="circle-action-btn btn-alert-red" id="btnTripLine" title="Trip / Cut a Transmission Line">
+      ⚡
+    </button>
+
+    <button class="circle-action-btn btn-alert-red" id="btnFailSubstation" title="Simulate Substation Blackout">
+      💥
+    </button>
+
+    <button class="circle-action-btn btn-action-green" id="btnPriorityRecovery" title="Execute Priority Queue Recovery (Hospitals First)">
+      🚑
+    </button>
+  </div>
+
+  <!-- ========================================================
+       5. Floating Bottom Detail Card (Matches reference UI)
+       ======================================================== -->
+  <div class="floating-bottom-status-card" id="bottomStatusCard">
+    <div class="bottom-card-top-row">
+      <div class="bottom-left-title-group">
+        <span class="order-id-label" id="bottomRouteId">Route ID #TR-29698-98971</span>
+        <span class="dark-pill-badge" id="bottomRouteBadge">IN TRANSIT</span>
+      </div>
+      <button class="pill-contact-btn" id="btnBottomAction">
+        <span>🚑 Execute Priority Dispatch</span>
+      </button>
+    </div>
+
+    <div class="bottom-metadata-columns">
+      <div class="meta-col">
+        <span class="meta-label">From</span>
+        <span class="meta-value" id="metaFromStation">Badarpur Thermal</span>
+        <span class="meta-sub">Delhi NCR (400 kV)</span>
+      </div>
+      <div class="meta-col">
+        <span class="meta-label">To</span>
+        <span class="meta-value" id="metaToStation">AIIMS Hospital</span>
+        <span class="meta-sub">Critical Tier 1 Facility</span>
+      </div>
+      <div class="meta-col">
+        <span class="meta-label">Active Bypass Route</span>
+        <span class="meta-value" id="metaBypassRoute">Sarita Vihar ➔ AIIMS</span>
+        <span class="meta-sub" id="metaAlgorithmTag">Dijkstra Shortest Path</span>
+      </div>
+      <div class="meta-col">
+        <span class="meta-label">Path Impedance</span>
+        <span class="meta-value" id="metaImpedance">9.3 Ω-km</span>
+        <span class="meta-sub">Loss: 1.2%</span>
+      </div>
+      <div class="meta-col">
+        <span class="meta-label">Grid Health</span>
+        <span class="meta-value" id="metaGridHealth" style="color: #10b981;">100% Online</span>
+        <span class="meta-sub">AC 50.02 Hz</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       6. Benchmark Suite Slide-Up Drawer
+       ======================================================== -->
+  <div class="benchmark-drawer" id="benchmarkDrawer">
+    <div class="benchmark-toggle-bar" id="benchmarkToggleBar">
+      <span>📊 ALGORITHM PERFORMANCE BENCHMARKS (BFS, DFS, Dijkstra, Prim, Kruskal, Priority Queue)</span>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-pill btn-pill-dark" id="btnRunBenchmarkAll">⚡ Run All Benchmarks</button>
+        <button class="btn-pill btn-pill-light" id="btnToggleDrawer">▲ Expand</button>
+      </div>
+    </div>
+    <div class="benchmark-table-container">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Algorithm</th>
+            <th>Objective</th>
+            <th>Complexity (Theoretical)</th>
+            <th>Space</th>
+            <th>Exec Time (μs)</th>
+            <th>Path / Tree Cost</th>
+            <th>Explored</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="benchmarkTableBody">
+          <!-- Populated by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       7. Academic Report Modal Popup
+       ======================================================== -->
+  <div class="modal-overlay" id="reportModalOverlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>📄 Power Grid Failure Recovery - Academic Evaluation Report</h2>
+        <button id="btnCloseModal" style="background: none; border: none; font-size: 1.4rem; cursor: pointer;">&times;</button>
+      </div>
+      <div class="modal-body" id="modalReportContent">
+        <!-- Generated dynamic report -->
+      </div>
+      <div class="modal-footer">
+        <a href="presentation_deck.html" target="_blank" class="btn-pill" style="background:#2563eb; color:#fff; text-decoration:none;">🖥️ Open 16:9 Presentation Deck</a>
+        <button id="btnPrintReport" class="btn-pill btn-pill-dark">🖨️ Print / Save PDF</button>
+        <button id="btnDismissModal" class="btn-pill btn-pill-light">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet Library -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Main Simulator Engine -->
+  <script src="app.js"></script>
+</body>
+</html>

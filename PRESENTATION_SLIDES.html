@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADA Project Presentation Slides | Power Grid Failure Recovery Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #18181b;
+      --accent: #2563eb;
+      --lime: #16a34a;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 30px 20px 80px 20px;
+    }
+    .header-bar {
+      max-width: 950px;
+      margin: 0 auto 30px auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 18px;
+    }
+    .header-bar h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .header-bar p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .top-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+    .btn:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+    .btn-dark {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+    .btn-dark:hover {
+      background: #27272a;
+    }
+    .deck-container {
+      max-width: 950px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+    .slide-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 32px 36px;
+      position: relative;
+    }
+    .slide-number-pill {
+      display: inline-flex;
+      align-items: center;
+      background: #f1f5f9;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 14px;
+    }
+    .slide-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .slide-content {
+      font-size: 0.92rem;
+      color: #334155;
+    }
+    .slide-content h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 14px 0 6px 0;
+    }
+    .slide-content ul {
+      margin-left: 20px;
+      margin-bottom: 14px;
+    }
+    .slide-content li {
+      margin-bottom: 6px;
+    }
+    .slide-content strong {
+      color: #0f172a;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 0.82rem;
+    }
+    th, td {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+    th {
+      background: #f8fafc;
+      font-weight: 700;
+      color: #475569;
+    }
+    code, pre {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.82rem;
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 5px;
+      color: #0f172a;
+    }
+    pre {
+      padding: 14px 18px;
+      overflow-x: auto;
+      margin: 12px 0;
+      line-height: 1.5;
+    }
+    .copy-slide-btn {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .copy-slide-btn:hover {
+      background: #e2e8f0;
+      color: var(--text);
+    }
+    @media print {
+      body { padding: 0; background: #fff; }
+      .header-bar, .copy-slide-btn, .top-actions { display: none; }
+      .slide-card { page-break-after: always; box-shadow: none; border: 1px solid #ccc; margin-bottom: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-bar">
+    <div>
+      <h1>⚡ ADA Project 12-Slide Presentation Deck</h1>
+      <p>The Power Grid Failure Recovery Simulator | Faculty of Technology, University of Delhi (Dr. Juhi Jain)</p>
+    </div>
+    <div class="top-actions">
+      <a class="btn btn-dark" href="presentation_deck.html" target="_blank">🖥️ Open 16:9 Slide Presenter</a>
+      <button class="btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+      <a class="btn" href="index.html">🗺️ Open Map Simulator</a>
+    </div>
+  </div>
+
+  <div class="deck-container">
+
+    <!-- Slide 1 -->
+    <div class="slide-card" id="slide1">
+      <div class="slide-number-pill">Slide 1 of 12</div>
+      <div class="slide-title">
+        <span>Title Slide</span>
+        <button class="copy-slide-btn" onclick="copyCardText('slide1')">📋 Copy Slide</button>
+      </div>
+      <div class="slide-content">
+        <h2 style="font-size: 1.4rem; color: #1e293b; margin-bottom: 6px;">The Power Grid Failure Recovery Simulator</h2>
+        <p style="color: #2563eb; font-weight: 600; font-size: 0.95rem; margin-bottom: 16px;">An Algorithmic Graph Theory & Priority-Driven SCADA Simulation System</p>
+        <ul>
+          <li><strong>Group Members:</strong>
+            <ul>
+              <li><strong>Aashutosh Singh Parihar</strong> — Roll No: <code>25293916003</code> (B.Tech CSE B2)</li>
+              <li><strong>C. Sai Vishwak Raju</strong> — Roll No: <code>25293916027</code> (B.Tech CSE B2)</li>
+            </ul>
+          </li>
+          <li><strong>Course Details:</strong> Analysis and Design of Algorithms (ADA) | 3rd Semester</li>
+          <li><strong>Institution:</strong> Faculty of Technology, University of Delhi (2026–2027)</li>
+          <li><strong>Submitted to:</strong> Dr. Juhi Jain</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="slide-card" id="slide2">
+      <div class="slide-number-pill">Slide 2 of 12</div>
+      <div class="slide-title">
+        <span>Problem Statement & Real-World Motivation</span>
+        <button class="copy-slide-btn" onclick="copyCardText('slide2')">📋 Copy Slide</button>
+      </div>
+      <div class="slide-content">
+        <h3>The Problem</h3>
+        <p>Modern electrical power grids are large-scale interconnected meshes. Sudden faults (physical cable cuts, transformer explosions, extreme weather) disconnect critical areas. Finding appropriate alternative bypass routes manually in real-time is an intractable challenge, especially during cascading multiple-component failures.</p>
+        
+        <h3>Formal Problem Definition</h3>
+        <ul>
+          <li><strong>Inputs:</strong> A weighted graph <code>G = (V, E)</code> where vertices <code>V</code> are substations/generators, edges <code>E</code> are transmission lines with positive weights <code>w(e) > 0</code> (impedance/distance), facility priority tiers <code>P(v) ∈ {0, 1, 2, 3, 4}</code>, and a set of failed components <code>F ⊆ (V ∪ E)</code>.</li>
+          <li><strong>Expected Outputs:</strong> Disconnected island diagnostic, critical single-point-of-failure bridge lines, minimum-impedance alternate recovery routes, and optimal Minimum Spanning Tree (MST).</li>
+          <li><strong>Constraints:</strong> Positive edge weights, conservation of energy flow, and strict emergency restoration priority ordering (Tier 1 Hospitals restored before residential/industrial).</li>
+        </ul>
+
+        <h3>Real-World Relevance</h3>
+        <p>1. <strong>Disaster Management:</strong> Guarantees ICU ventilators and trauma centers receive immediate bypass power.<br>
+        2. <strong>Smart-Grid SCADA Automation:</strong> Enables regional load dispatch centers to automatically self-heal and reconfigure.</p>
+      </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="slide-card" id="slide3">
+      <div class="slide-number-pill">Slide 3 of 12</div>
+      <div class="slide-title">
+        <span>Algorithmic Paradigm & Approach</span>
+        <button class="copy-slide-btn" onclick="copyCardText('slide3')">📋 Copy Slide</button>
+      </div>
+      <div class="slide-content">
+        <h3>Core Algorithmic Paradigms</h3>
+        <ul>
+          <li><strong>Greedy Method:</strong> Applied in Dijkstra’s Algorithm, Kruskal’s MST, and Prim’s MST.</li>
+          <li><strong>Graph Traversal & Backtracking:</strong> Applied in Breadth-First Search (BFS) and Depth-First Search (Tarjan’s Bridge Detection).</li>
+          <li><strong>Priority-Driven Scheduling:</strong> Applied in the Min-Heap Emergency Recovery Dispatcher.</li>
+        </ul>
+
+        <h3>Exact Algorithms Implemented</h3>
+        <ul>
+          <li><strong>BFS:</strong> <code>O(V + E)</code> — Determines reachability and identifies islanded blackout zones.</li>
+          <li><strong>Tarjan’s DFS:</strong> <code>O(V + E)</code> — Discovers cut-edges (bridges) whose failure splits the grid.</li>
+          <li><strong>Dijkstra’s Algorithm:</strong> <code>O((V + E) log V)</code> — Computes least-impedance bypass paths around broken lines.</li>
+          <li><strong>Kruskal’s Algorithm:</strong> <code>O(E log E)</code> — Builds the global minimal transmission tree using Disjoint Set Union.</li>
+          <li><strong>Prim’s Algorithm:</strong> <code>O(E log V)</code> — Re-energizes substations outward from active generators.</li>
+        </ul>
+
+        <h3>Why This Approach Over Brute-Force?</h3>
+        <p>A brute-force search across all possible bypass paths takes exponential time <code>O(2^V)</code> or factorial time <code>O(V!)</code>. By employing Dijkstra and greedy spanning trees, computation drops to <strong>sub-millisecond polynomial time</strong> (<code>O((V + E) log V)</code>).</p>
+      </div>
+    </div>
+
+    <!-- Slide 4 -->
+    <div class="slide-card" id="slide4">
+      <div class="slide-number-pill">Slide 4 of 12</div>
+      <div class="slide-title">
+        <span>Data Structures Used</span>
+        <button class="copy-slide-btn" onclick="copyCardText('slide4')">📋 Copy Slide</button>
+      </div>
+      <div class="slide-content">
+        <table>
+          <thead>
+            <tr>
+              <th>Data Structure</th>
+              <th>Implementation</th>
+              <th>Design Choice & Optimization Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Adjacency List</strong></td>
+              <td><code>vector&lt;vector&lt;Edge&gt;&gt;</code> / Hash Map</td>
+              <td>Space-optimal <code>O(V + E)</code> representation instead of <code>O(V²)</code> matrix. Enables fast neighbor discovery.</td>
+            </tr>
+            <tr>
+              <td><strong>Binary Min-Heap (PQ)</strong></td>
+              <td>Custom Heap / <code>priority_queue</code></td>
+              <td>Logarithmic <code>O(log V)</code> extraction of minimum path distances and highest emergency priority tiers.</td>
+            </tr>
+            <tr>
+              <td><strong>Disjoint Set Union (DSU)</strong></td>
+              <td>Path Compression + Union by Rank</td>
+              <td>Near-instant <code>O(α(V))</code> cycle checks and set unions during Kruskal's MST edge evaluation.</td>
+            </tr>
+            <tr>
+              <td><strong>Discovery & Low Arrays</strong></td>
+              <td><code>tin[]</code> and <code>low[]</code> arrays</td>
+              <td>Enables linear-time <code>O(V + E)</code> critical bridge line identification in a single recursive DFS pass.</td>
+            </tr>
+            <tr>
+              <td><strong>Hash Maps</strong></td>
+              <td><code>Map&lt;NodeID, Node&gt;</code></td>
+              <td>Instant <code>O(1)</code> telemetry lookup and state updates for substations and transmission lines.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Slide 5 -->
+    <div class="slide-card" id="slide5">
+      <div class="slide-number-pill">Slide 5 of 12</div>
+      <div class="slide-title">
+        <span>Algorithm Logic (Workflow & Pseudocode)</span>
+        <button class="copy-slide-btn" onclick="copyCardText('slide5')">📋 Copy Slide</button>
+      </div>
+      <div class="slide-content">
+        <h3>Step-by-Step Recovery Logic:</h3>
+        <pre><code>Algorithm PriorityQueueDisasterRecovery(G, Generators, BlackoutNodes):
+    PQ = Empty Min-Heap (comparator: node.priority_tier ASC, node.demand DESC)
+    for each node v in BlackoutNodes:
+        PQ.push(v)
+    
+    while PQ is not empty:
+        target = PQ.pop()               // Extracts Tier 1 Hospital first!
+        best_cost = INFINITY, best_path = NULL
+        
+        for each generator in Generators:
+            (cost, path) = Dijkstra(G, generator, target)
+            if cost < best_cost:
+                best_cost = cost
+                best_path = path
+                
+        if best_path != NULL:
+            Energize(target)
+            HighlightBypassPath(best_path)</code></pre>
+      </div>
+    </div>
+
+    <!-- Slide 6 -->
+    <div class="slide-card" id="slide6">
+      <div class="slide-number-pill">Slide 6 of 12</div>
+      <div class="slide-title">
+        <span>Theoretical Complexity Analysis</span>
+        <button class="copy-slide-btn" onclick="copyCardText('slide6')">📋 Copy Slide</button>
+      </div>
+      <div class="slide-content">
+        <h3>Time Complexity Derivations</h3>
+        <ul>
+          <li><strong>BFS Reachability:</strong> Visits each vertex once and inspects incident edges once: <code>O(V + E)</code>.</li>
+          <li><strong>Tarjan’s DFS:</strong> Single depth-first traversal with ancestor back-edge updates: <code>O(V + E)</code>.</li>
+          <li><strong>Dijkstra’s Algorithm:</strong> <code>V</code> extract-min operations (<code>V log V</code>) + at most <code>E</code> edge relaxations (<code>E log V</code>) &rArr; <strong><code>O((V + E) log V)</code></strong>.</li>
+          <li><strong>Kruskal’s Algorithm:</strong> Edge sorting dominates (<code>E log E</code>); DSU operations take <code>O(E · α(V))</code> &rArr; <strong><code>O(E log E)</code></strong>.</li>
+          <li><strong>Priority Queue Dispatch:</strong> For <code>K</code> disconnected substations: <strong><code>O(K · (V + E) log V)</code></strong>.</li>
+        </ul>
+        <h3>Space Complexity</h3>
+        <p>Adjacency lists require <code>O(V + E)</code> memory; Min-Heap, distance arrays, and recursion stacks require <code>O(V)</code>. Total auxiliary memory is strictly <strong><code>O(V + E)</code></strong> (< 10 MB).</p>
+      </div>
+    </div>
+
+    <!-- Slide 7 -->
+    <div class="slide-card" id="slide7">
+      <div class="slide-number-pill">Slide 7 of 12</div>
+      <div class="slide-title">
+        <span>Implementation & Dataset Details</span>
+        <button class="copy-slide-btn" onclick="copyCardText('slide7')">📋 Copy Slide</button>
+      </div>
+      <div class="slide-content">
+        <h3>Tech Stack</h3>
+        <ul>
+          <li><strong>Frontend / GUI:</strong> Modern HTML5, ES6 JavaScript, Leaflet.js, and CARTO Voyager licensed tiles.</li>
+          <li><strong>Native Implementations:</strong> C++17 (with STL <code>priority_queue</code>, <code>&lt;chrono&gt;</code>) and Python 3 (<code>heapq</code>).</li>
+          <li><strong>Local Server:</strong> Zero-dependency Node.js HTTP server.</li>
+        </ul>
+        <h3>Dataset & Topologies</h3>
+        <ul>
+          <li><strong>Delhi NCR Regional Power Grid (Custom Benchmark):</strong> 12 Primary Stations & Substations mapped with real GPS coordinates across Delhi, connected via 18 High-Voltage transmission lines.</li>
+          <li><strong>IEEE 14-Bus Test System:</strong> Industry-standard benchmark electrical network (14 buses, 20 lines).</li>
+          <li><strong>Cascading Fragile Mesh:</strong> 16-node stress-test network designed to demonstrate multi-line overload trips.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Slide 8 -->
+    <div class="slide-card" id="slide8">
+      <div class="slide-number-pill">Slide 8 of 12</div>
+      <div class="slide-title">
+        <span>Experimental Results & Performance Benchmarks</span>
+        <button class="copy-slide-btn" onclick="copyCardText('slide8')">📋 Copy Slide</button>
+      </div>
+      <div class="slide-content">
+        <table>
+          <thead>
+            <tr>
+              <th>Algorithm</th>
+              <th>Theoretical Big-O</th>
+              <th>Measured Time (μs)</th>
+              <th>Nodes Explored</th>
+              <th>Outcome / Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>BFS Scan</strong></td>
+              <td><code>O(V + E)</code></td>
+              <td><strong>18 μs</strong></td>
+              <td>12</td>
+              <td>100% Reachable (0 Islands)</td>
+            </tr>
+            <tr>
+              <td><strong>Tarjan DFS Bridges</strong></td>
+              <td><code>O(V + E)</code></td>
+              <td><strong>24 μs</strong></td>
+              <td>12</td>
+              <td>0 Bridges (Resilient Ring Mesh)</td>
+            </tr>
+            <tr>
+              <td><strong>Dijkstra Bypass</strong></td>
+              <td><code>O((V + E) log V)</code></td>
+              <td><strong>36 μs</strong></td>
+              <td>5</td>
+              <td>Path Cost: 12.0 Ω-km</td>
+            </tr>
+            <tr>
+              <td><strong>Kruskal's MST</strong></td>
+              <td><code>O(E log E)</code></td>
+              <td><strong>45 μs</strong></td>
+              <td>12</td>
+              <td>Tree Cost: 57.1 Ω-km</td>
+            </tr>
+            <tr>
+              <td><strong>Prim's MST</strong></td>
+              <td><code>O(E log V)</code></td>
+              <td><strong>41 μs</strong></td>
+              <td>12</td>
+              <td>Tree Cost: 57.1 Ω-km</td>
+            </tr>
+            <tr>
+              <td><strong>PQ Disaster Dispatch</strong></td>
+              <td><code>O(K(V + E) log V)</code></td>
+              <td><strong>68 μs</strong></td>
+              <td>14</td>
+              <td>Tier 1 Hospital Restored in &lt; 0.1 ms</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><strong>Theory vs. Practice:</strong> In sparse and planar electrical transmission grids, empirical execution scales strictly within polynomial bounds, allowing real-time decision-making well under human perceptual delay.</p>
+      </div>
+    </div>
+
+    <!-- Slide 9 -->
+    <div class="slide-card" id="slide9">
+      <div class="slide-number-pill">Slide 9 of 12</div>
+      <div class="slide-title">
+        <span>Comparative Analysis</span>
+        <button class="copy-slide-btn" onclick="copyCardText('slide9')">📋 Copy Slide</button>
+      </div>
+      <div class="slide-content">
+        <table>
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>Dijkstra's Algorithm</th>
+              <th>Kruskal's Algorithm</th>
+              <th>Prim's Algorithm</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Core Objective</strong></td>
+              <td>Point-to-point shortest bypass path</td>
+              <td>Global Minimum Spanning Tree</td>
+              <td>Generator-rooted outward Spanning Tree</td>
+            </tr>
+            <tr>
+              <td><strong>Primary Role</strong></td>
+              <td>Bypassing isolated broken transmission lines</td>
+              <td>Reconstructing the full network backbone</td>
+              <td>Black-start re-energization from plant</td>
+            </tr>
+            <tr>
+              <td><strong>Time Complexity</strong></td>
+              <td><code>O((V + E) log V)</code></td>
+              <td><code>O(E log E)</code></td>
+              <td><code>O(E log V)</code></td>
+            </tr>
+            <tr>
+              <td><strong>Key Trade-off</strong></td>
+              <td>Minimizes path latency, but ignores global wire efficiency.</td>
+              <td>Globally minimizes wire impedance, but individual paths may be longer.</td>
+              <td>Ideal when source is fixed, but requires frontier queue maintenance.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Slide 10 -->
+    <div class="slide-card" id="slide10">
+      <div class="slide-number-pill">Slide 10 of 12</div>
+      <div class="slide-title">
+        <span>Edge Cases & Testing</span>
+        <button class="copy-slide-btn" onclick="copyCardText('slide10')">📋 Copy Slide</button>
+      </div>
+      <div class="slide-content">
+        <ul>
+          <li><strong>Complete Islanding:</strong> If all incident lines to a substation fail, Dijkstra detects distance &infin; without crashing; the Priority Queue logs the failure and continues serving reachable facilities.</li>
+          <li><strong>Zero/Negative Weights:</strong> Line impedances are strictly positive (<code>w(e) > 0</code>), ensuring Dijkstra never enters infinite negative loops.</li>
+          <li><strong>Total Generation Loss:</strong> If all generators trip simultaneously, the system immediately raises a blackout critical state without executing null pointer dereferences.</li>
+          <li><strong>Cycle Rejection:</strong> Tested on dense cyclic meshes; verified that Kruskal’s DSU rejects redundant chords, spanning exactly <code>|V| - 1</code> lines.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Slide 11 -->
+    <div class="slide-card" id="slide11">
+      <div class="slide-number-pill">Slide 11 of 12</div>
+      <div class="slide-title">
+        <span>Challenges, Limitations & Future Scope</span>
+        <button class="copy-slide-btn" onclick="copyCardText('slide11')">📋 Copy Slide</button>
+      </div>
+      <div class="slide-content">
+        <h3>Challenges Overcome</h3>
+        <ul>
+          <li><strong>Spiderweb Map Clutter:</strong> Solved by redesigning the network into a planar ring-and-radial topology and applying <strong>quadratic Bézier curved arcs</strong>.</li>
+          <li><strong>Priority Inversion:</strong> Prevented high-demand residential zones from starving low-demand hospitals through strict tuple-based min-heap comparator ordering.</li>
+        </ul>
+        <h3>Current Limitations & Future Scope</h3>
+        <ul>
+          <li><strong>Limitation:</strong> The model simulates graph connectivity and electrical impedance, but does not perform non-linear AC differential power-flow equations (VARs / phase angles).</li>
+          <li><strong>Future Upgrades:</strong> Integration of Machine Learning models for predictive failure forecasting and dynamic renewable energy battery storage injection.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Slide 12 -->
+    <div class="slide-card" id="slide12">
+      <div class="slide-number-pill">Slide 12 of 12</div>
+      <div class="slide-title">
+        <span>Individual Contributions & Project Repository</span>
+        <button class="copy-slide-btn" onclick="copyCardText('slide12')">📋 Copy Slide</button>
+      </div>
+      <div class="slide-content">
+        <h3>Team Contribution Matrix</h3>
+        <ul>
+          <li><strong>Aashutosh Singh Parihar (25293916003):</strong>
+            <ul>
+              <li>Core Algorithm Architecture & Theoretical Complexity Formulations.</li>
+              <li>Implementation of Dijkstra's Algorithm, Priority Queue Recovery Engine, and C++ Simulator.</li>
+              <li>Performance Benchmarking Suite & Execution Analysis.</li>
+            </ul>
+          </li>
+          <li><strong>C. Sai Vishwak Raju (25293916027):</strong>
+            <ul>
+              <li>Disjoint Set Union (DSU), Kruskal's MST, Prim's Algorithm & Tarjan's Bridge Detection.</li>
+              <li>Leaflet & CARTO Voyager Geospatial Integration and Bézier Curve Path Generation.</li>
+              <li>Python Simulator Engine & Experimental Test Case Generation.</li>
+            </ul>
+          </li>
+        </ul>
+        <h3>Project Artifacts</h3>
+        <ul>
+          <li><strong>Interactive Simulator:</strong> <code>index.html</code> (or run <code>node server.js</code>)</li>
+          <li><strong>C++ Source Code:</strong> <code>src_cpp/power_grid_simulator.cpp</code></li>
+          <li><strong>Python Source Code:</strong> <code>src_python/power_grid_simulator.py</code></li>
+          <li><strong>Full Academic Synopsis:</strong> <code>README.md</code></li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function copyCardText(cardId) {
+      const card = document.getElementById(cardId);
+      const text = card.innerText.replace('📋 Copy Slide', '').trim();
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Slide content copied to clipboard! You can paste it straight into PowerPoint or Google Slides.');
+      });
+    }
+  </script>
+</body>
+</html>

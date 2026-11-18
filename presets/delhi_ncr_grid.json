@@ -1,0 +1,40 @@
+{
+  "system": "Faculty of Technology - Delhi NCR Regional Grid",
+  "author": "Aashutosh Singh Parihar & C. Sai Vishwak Raju",
+  "guide": "Dr. Juhi Jain",
+  "nodes": [
+    { "id": "PS_BADARPUR", "name": "Badarpur Thermal Power Station", "type": "generator", "priority": 0, "x": 180, "y": 120, "capacityMW": 800, "demandMW": 0 },
+    { "id": "PS_INDRAPRASTHA", "name": "Indraprastha Gas Turbine Station", "type": "generator", "priority": 0, "x": 620, "y": 110, "capacityMW": 600, "demandMW": 0 },
+    { "id": "PS_PRAGATI", "name": "Pragati Combined Cycle Station", "type": "generator", "priority": 0, "x": 420, "y": 360, "capacityMW": 500, "demandMW": 0 },
+    { "id": "FAC_AIIMS", "name": "AIIMS Hospital Substation", "type": "hospital", "priority": 1, "x": 300, "y": 220, "capacityMW": 90, "demandMW": 75 },
+    { "id": "FAC_TRAUMA", "name": "Safdarjung Trauma Center", "type": "emergency", "priority": 1, "x": 230, "y": 320, "capacityMW": 80, "demandMW": 65 },
+    { "id": "FAC_WATER", "name": "Delhi Jal Board Wazirabad", "type": "transit_water", "priority": 2, "x": 520, "y": 220, "capacityMW": 120, "demandMW": 110 },
+    { "id": "FAC_METRO", "name": "DMRC Metro Traction Substation", "type": "transit_water", "priority": 2, "x": 680, "y": 290, "capacityMW": 150, "demandMW": 130 },
+    { "id": "SUB_WAZIRABAD", "name": "Wazirabad 400kV Grid Substation", "type": "substation", "priority": 3, "x": 380, "y": 120, "capacityMW": 400, "demandMW": 20 },
+    { "id": "SUB_SARITA_VIHAR", "name": "Sarita Vihar Substation", "type": "substation", "priority": 3, "x": 140, "y": 250, "capacityMW": 250, "demandMW": 40 },
+    { "id": "RES_CONNAUGHT", "name": "Connaught Place NDMC Grid", "type": "residential", "priority": 3, "x": 440, "y": 270, "capacityMW": 160, "demandMW": 140 },
+    { "id": "RES_ROHINI", "name": "Rohini Urban Distribution Hub", "type": "residential", "priority": 3, "x": 320, "y": 440, "capacityMW": 180, "demandMW": 160 },
+    { "id": "IND_OKHLA", "name": "Okhla Industrial Area Phase-III", "type": "industrial", "priority": 4, "x": 560, "y": 430, "capacityMW": 220, "demandMW": 195 }
+  ],
+  "edges": [
+    { "id": "E1", "u": "PS_BADARPUR", "v": "SUB_SARITA_VIHAR", "weight": 4.2 },
+    { "id": "E2", "u": "PS_BADARPUR", "v": "SUB_WAZIRABAD", "weight": 8.5 },
+    { "id": "E3", "u": "SUB_WAZIRABAD", "v": "PS_INDRAPRASTHA", "weight": 6.8 },
+    { "id": "E4", "u": "SUB_SARITA_VIHAR", "v": "FAC_AIIMS", "weight": 5.1 },
+    { "id": "E5", "u": "SUB_SARITA_VIHAR", "v": "FAC_TRAUMA", "weight": 4.8 },
+    { "id": "E6", "u": "FAC_AIIMS", "v": "FAC_TRAUMA", "weight": 2.2 },
+    { "id": "E7", "u": "SUB_WAZIRABAD", "v": "FAC_AIIMS", "weight": 6.0 },
+    { "id": "E8", "u": "SUB_WAZIRABAD", "v": "FAC_WATER", "weight": 5.4 },
+    { "id": "E9", "u": "PS_INDRAPRASTHA", "v": "FAC_WATER", "weight": 4.7 },
+    { "id": "E10", "u": "PS_INDRAPRASTHA", "v": "FAC_METRO", "weight": 6.2 },
+    { "id": "E11", "u": "FAC_WATER", "v": "RES_CONNAUGHT", "weight": 3.5 },
+    { "id": "E12", "u": "FAC_AIIMS", "v": "RES_CONNAUGHT", "weight": 4.0 },
+    { "id": "E13", "u": "PS_PRAGATI", "v": "RES_CONNAUGHT", "weight": 3.2 },
+    { "id": "E14", "u": "PS_PRAGATI", "v": "FAC_METRO", "weight": 5.8 },
+    { "id": "E15", "u": "PS_PRAGATI", "v": "IND_OKHLA", "weight": 7.1 },
+    { "id": "E16", "u": "FAC_TRAUMA", "v": "RES_ROHINI", "weight": 6.5 },
+    { "id": "E17", "u": "RES_CONNAUGHT", "v": "RES_ROHINI", "weight": 5.9 },
+    { "id": "E18", "u": "RES_ROHINI", "v": "IND_OKHLA", "weight": 7.8 },
+    { "id": "E19", "u": "FAC_METRO", "v": "IND_OKHLA", "weight": 6.4 }
+  ]
+}
