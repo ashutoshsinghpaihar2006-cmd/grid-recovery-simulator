@@ -139,8 +139,9 @@ python src_python/power_grid_simulator.py
 
 ## 🌐 9. Submission & Deployment Information
 
-- **Source Code Repository:** GitHub Repository (configured on `main` branch)
-- **Live Functional Application:** Hostable on any static web host (GitHub Pages, Vercel, Netlify) or locally executable via `index.html` / `node server.js`.
+- **Source Code Repository:** [https://github.com/ashutoshsinghpaihar2006-cmd/grid-recovery-simulator](https://github.com/ashutoshsinghpaihar2006-cmd/grid-recovery-simulator)
+- **Live Functional Application URL:** [https://ashutoshsinghpaihar2006-cmd.github.io/grid-recovery-simulator/](https://ashutoshsinghpaihar2006-cmd.github.io/grid-recovery-simulator/)
+- **Local Run Instructions:** Open `index.html` directly in any web browser or run `node server.js` to view on `http://localhost:3000`.
 - **Presentation Decks Included:**
   - `PRESENTATION_SLIDES.pptx`: 12-slide native PowerPoint presentation
   - `Grid_Failure_Recovery.pptx`: Custom 12-slide styled presentation
